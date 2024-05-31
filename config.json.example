@@ -1,0 +1,5 @@
+{
+    "token" : "<your-token-here>",
+    "speech_key": "<speech_key_here>",
+    "speech_region": "<speech_region_here>"
+}
