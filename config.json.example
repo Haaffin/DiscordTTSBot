@@ -1,5 +1,7 @@
 {
     "token" : "<your-token-here>",
     "speech_key": "<speech_key_here>",
-    "speech_region": "<speech_region_here>"
+    "speech_region": "<speech_region_here>",
+    "client_id": "<bots id here>",
+    "guild_id": "<development guild id here>"
 }
