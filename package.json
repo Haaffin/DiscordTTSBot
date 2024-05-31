@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "node build-commands.js",
+    "build_local": "node build-local-commands.js",
+    "build_global": "noode build-global-commands.js",
     "start": "node index.js"
   },
   "author": "Echo Haaff",
