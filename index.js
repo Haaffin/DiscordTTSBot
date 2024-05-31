@@ -1,10 +1,9 @@
-const { Client, Events, GatewayIntentBits } = require('discord.js');
-const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, VoiceConnectionStatus } = require('@discordjs/voice');
+const { Client, Events, GatewayIntentBits, Collection, ActivityType } = require('discord.js');
+const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, VoiceConnectionStatus, getVoiceConnection } = require('@discordjs/voice');
 const sdk = require("microsoft-cognitiveservices-speech-sdk");
 const fs = require('fs');
 const path = require('path');
-
-const {token, speech_key, speech_region } = require('./config.json')
+const { token, speech_key, speech_region } = require('./config.json');
 
 // Bot Init
 const client = new Client({
@@ -16,26 +15,86 @@ const client = new Client({
     ]
 });
 
+client.commands = new Collection();
+
+const foldersPath = path.join(__dirname, 'commands');
+const commandFolders = fs.readdirSync(foldersPath);
+
+for (const folder of commandFolders) {
+    const commandsPath = path.join(foldersPath, folder);
+    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+    for (const file of commandFiles) {
+        const filePath = path.join(commandsPath, file);
+        const command = require(filePath);
+        // Set a new item in the Collection with the key as the command name and the value as the exported module
+        if ('data' in command && 'execute' in command) {
+            client.commands.set(command.data.name, command);
+        } else {
+            console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+        }
+    }
+}
+
 const AZURE_PREFIXES = {
-    "(angry)" : "angry",
-    "(cheerful)" : "cheerful",
-    "(excited)" : "excited",
-    "(hopeful)" : "hopeful",
-    "(sad)" : "sad",
-    "(shouting)" : "shouting",
-    "(shout)" : "shouting",
-    "(terrified)" : "terrified",
-    "(unfriendly)" : "unfriendly",
-    "(whispering)" : "whispering",
-    "(whisper)" : "whispering",
-    "(default)" : "Default",
+    "(angry)": "angry",
+    "(cheerful)": "cheerful",
+    "(excited)": "excited",
+    "(hopeful)": "hopeful",
+    "(sad)": "sad",
+    "(shouting)": "shouting",
+    "(shout)": "shouting",
+    "(terrified)": "terrified",
+    "(unfriendly)": "unfriendly",
+    "(whispering)": "whispering",
+    "(whisper)": "whispering",
+    "(default)": "Default",
 };
 
 let ttsQueue = [];
 let isPlaying = false;
 
 client.once(Events.ClientReady, readyClient => {
+    client.user.setPresence({
+        activities: [{ name: `/apps`, type: ActivityType.Listening }],
+        status: 'online'
+    });
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+});
+
+client.on(Events.InteractionCreate, async interaction => {
+    // If not a slash command, ignore
+    if (!interaction.isChatInputCommand()) return;
+    const command = interaction.client.commands.get(interaction.commandName);
+
+    if (!command) {
+        console.error(`No command matching ${interaction.commandName} was found.`);
+        return;
+    }
+
+    try {
+        await command.execute(interaction, client);
+    } catch (error) {
+        console.error(error);
+        if (interaction.replied || interaction.deferred) {
+            await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+        } else {
+            await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+        }
+    }
+});
+
+client.on('voiceStateUpdate', (oldState, newState) => {
+    const connection = getVoiceConnection(oldState.guild.id);
+    if (!connection) return;
+
+    const channel = oldState.guild.members.me.voice.channel;
+    if (!channel) return;
+
+    // Check if the bot is the only one left in the voice channel
+    if (channel.members.size === 1 && channel.members.has(client.user.id)) {
+        console.log("Bot is alone in the voice channel, disconnecting...");
+        connection.destroy();
+    }
 });
 
 client.on('messageCreate', async message => {
@@ -109,6 +168,11 @@ async function playNext(voiceChannel) {
                     playNext(voiceChannel);
                 });
 
+                connection.on(VoiceConnectionStatus.Disconnected, () => {
+                    console.log("Voice connection disconnected");
+                    connection.destroy();
+                });
+
             } else {
                 console.error("Speech synthesis canceled, " + result.errorDetails +
                     "\nDid you set the speech resource key and region values?");
@@ -132,9 +196,6 @@ function extractVoiceStyleAndText(messageContent) {
     // Default to "Default" style if no prefix is found
     return { voiceStyle: "Default", text: messageContent };
 }
-
-
-
 
 // Log in to Discord with your client's token
 client.login(token);
