@@ -16,19 +16,6 @@ const client = new Client({
     ]
 });
 
-const AZURE_VOICE_STYLES = [
-    "angry",
-    "cheerful",
-    "excited",
-    "hopeful",
-    "sad",
-    "shouting",
-    "terrified",
-    "unfriendly",
-    "whispering",
-    "Default"
-];
-
 const AZURE_PREFIXES = {
     "(angry)" : "angry",
     "(cheerful)" : "cheerful",
