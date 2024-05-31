@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build_local": "node build-local-commands.js",
-    "build_global": "noode build-global-commands.js",
+    "build_global": "node build-global-commands.js",
     "start": "node index.js"
   },
   "author": "Echo Haaff",
