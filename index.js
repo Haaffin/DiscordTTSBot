@@ -70,12 +70,9 @@ async function playNext(voiceChannel) {
     const randomInt = Math.floor(Math.random() * 10000) + 1;
     const audioFile = `${message.author.displayName}-${randomInt}.mp3`;
     const tempFileName = path.join(__dirname, audioFile);
-    const SPEECH_KEY = speech_key;
-    const SPEECH_REGION = speech_region;
-
     const voice_name = 'en-US-DavisNeural';
 
-    const speechConfig = sdk.SpeechConfig.fromSubscription(SPEECH_KEY, SPEECH_REGION);
+    const speechConfig = sdk.SpeechConfig.fromSubscription(speech_key, speech_region);
     speechConfig.speechSynthesisOutputFormat = sdk.SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3;
     const audioConfig = sdk.AudioConfig.fromAudioFileOutput(tempFileName);
 
