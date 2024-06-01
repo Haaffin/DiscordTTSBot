@@ -1,0 +1,2 @@
+2024-06-01 16:51:30 - Starting C:\Program Files\nodejs\node.exe  C:\Users\haaff\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js --file E:\Projects\mutebot\index.js --scriptoptions= --log "MuteBotV3 wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2024-06-01 16:51:30 - Started 15764
